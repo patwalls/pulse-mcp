@@ -1,0 +1,79 @@
+#!/usr/bin/env node
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+// ─────────────────────────────────────────────────────────────────────────────
+// Pulse MCP server — drop social-post metrics into any MCP agent (Claude, Cursor…).
+//
+// Two tools, `metrics` and `metrics_batch`, that call Pulse's free public API.
+// Pulse is free, so there's no wallet, no key, no payment — just a plain fetch.
+// Defaults to the production endpoint; override with PULSE_API_URL.
+//
+// MCP travels over stdout/stdin, so all logging MUST go to stderr only.
+// ─────────────────────────────────────────────────────────────────────────────
+const BASE_URL = (process.env.PULSE_API_URL || "https://pulse.walls.sh").replace(/\/+$/, "");
+const server = new Server({ name: "pulse", version: "0.1.0" }, { capabilities: { tools: {} } });
+const TOOLS = [
+    {
+        name: "metrics",
+        description: "Get a public social post's metrics. Give a post URL (YouTube, X/Twitter, TikTok, Instagram, " +
+            "Threads, LinkedIn) and get normalized { platform, views, likes, comments, publishedAt, title }. Free.",
+        inputSchema: {
+            type: "object",
+            properties: { url: { type: "string", description: "The public post URL." } },
+            required: ["url"],
+        },
+    },
+    {
+        name: "metrics_batch",
+        description: "Get metrics for many posts in one call. Pass an array of post URLs (max 50); returns " +
+            "{ count, results }, order preserved — each result is the metrics object or { url, error }.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                urls: { type: "array", items: { type: "string" }, description: "Public post URLs (max 50)." },
+            },
+            required: ["urls"],
+        },
+    },
+];
+server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
+async function getJson(path) {
+    const res = await fetch(`${BASE_URL}${path}`, { headers: { accept: "application/json" } });
+    const body = await res.json().catch(() => ({ error: `non-JSON response (HTTP ${res.status})` }));
+    return body;
+}
+server.setRequestHandler(CallToolRequestSchema, async (req) => {
+    const { name, arguments: args } = req.params;
+    try {
+        if (name === "metrics") {
+            const url = String(args?.url || "").trim();
+            if (!url)
+                throw new Error("`url` is required");
+            const data = await getJson(`/metrics?url=${encodeURIComponent(url)}`);
+            return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+        }
+        if (name === "metrics_batch") {
+            const urls = (args?.urls ?? []);
+            const list = (Array.isArray(urls) ? urls : []).map((u) => String(u).trim()).filter(Boolean);
+            if (list.length === 0)
+                throw new Error("`urls` must be a non-empty array");
+            const qs = list.map((u) => `url=${encodeURIComponent(u)}`).join("&");
+            const data = await getJson(`/metrics/batch?${qs}`);
+            return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+        }
+        throw new Error(`unknown tool: ${name}`);
+    }
+    catch (e) {
+        return { content: [{ type: "text", text: `Error: ${e instanceof Error ? e.message : String(e)}` }], isError: true };
+    }
+});
+async function main() {
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    console.error(`[pulse-mcp] ready — tools: metrics, metrics_batch · backend ${BASE_URL}`);
+}
+main().catch((e) => {
+    console.error("[pulse-mcp] fatal:", e);
+    process.exit(1);
+});
