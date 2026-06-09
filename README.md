@@ -17,7 +17,7 @@ That's it — drop it in your MCP config and your agent has four new tools.
 | `metrics` | one post URL (short links like `vm.tiktok.com`/`t.co` OK) | `{ platform, views, likes, comments, publishedAt, title, author, thumbnail }` |
 | `metrics_batch` | many URLs | the same, one per URL (partial failures don't fail the batch) |
 | `history` | one post URL | the recorded growth curve — `{ count, points: [{ t, views, likes, comments }] }`, a snapshot per fresh fetch |
-| `profile` | one profile URL | account-level metrics — `{ handle, name, followers, following, posts, verified, avatar }` (YouTube, TikTok, Instagram) |
+| `profile` | one profile URL | account-level metrics — `{ handle, name, followers, following, posts, verified, avatar }` (YouTube, TikTok, Instagram, X) |
 
 **Example** — ask your agent "how did this video do?" with a link, and it gets:
 
