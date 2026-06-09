@@ -12,15 +12,16 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 // MCP travels over stdout/stdin, so all logging MUST go to stderr only.
 // ─────────────────────────────────────────────────────────────────────────────
 const BASE_URL = (process.env.PULSE_API_URL || "https://pulse.walls.sh").replace(/\/+$/, "");
-const server = new Server({ name: "pulse", version: "0.1.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "pulse", version: "0.2.0" }, { capabilities: { tools: {} } });
 const TOOLS = [
     {
         name: "metrics",
-        description: "Get a public social post's metrics. Give a post URL (YouTube, X/Twitter, TikTok, Instagram, " +
-            "Threads, LinkedIn) and get normalized { platform, views, likes, comments, publishedAt, title }. Free.",
+        description: "Get a public social post's metrics. Give a post URL (YouTube, X/Twitter, TikTok incl. photo posts, " +
+            "Instagram, Threads, LinkedIn — short links like vm.tiktok.com and t.co resolve automatically) and get " +
+            "normalized { platform, views, likes, comments, publishedAt, title, author, thumbnail }. Free.",
         inputSchema: {
             type: "object",
-            properties: { url: { type: "string", description: "The public post URL." } },
+            properties: { url: { type: "string", description: "The public post URL (short links OK)." } },
             required: ["url"],
         },
     },
@@ -34,6 +35,17 @@ const TOOLS = [
                 urls: { type: "array", items: { type: "string" }, description: "Public post URLs (max 50)." },
             },
             required: ["urls"],
+        },
+    },
+    {
+        name: "history",
+        description: "Get a post's recorded metrics history — the growth curve. Every fresh metrics fetch records a " +
+            "{ t, views, likes, comments } snapshot; this returns the series (oldest first). An empty series " +
+            "means the post hasn't been fetched yet: call `metrics` on it to start the series.",
+        inputSchema: {
+            type: "object",
+            properties: { url: { type: "string", description: "The public post URL." } },
+            required: ["url"],
         },
     },
 ];
@@ -62,6 +74,13 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
             const data = await getJson(`/metrics/batch?${qs}`);
             return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
         }
+        if (name === "history") {
+            const url = String(args?.url || "").trim();
+            if (!url)
+                throw new Error("`url` is required");
+            const data = await getJson(`/history?url=${encodeURIComponent(url)}`);
+            return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+        }
         throw new Error(`unknown tool: ${name}`);
     }
     catch (e) {
@@ -71,7 +90,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error(`[pulse-mcp] ready — tools: metrics, metrics_batch · backend ${BASE_URL}`);
+    console.error(`[pulse-mcp] ready — tools: metrics, metrics_batch, history · backend ${BASE_URL}`);
 }
 main().catch((e) => {
     console.error("[pulse-mcp] fatal:", e);

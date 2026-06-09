@@ -8,14 +8,15 @@ URL, get back views, likes, comments, and the publish date as clean JSON. **No s
 { "mcpServers": { "pulse": { "command": "npx", "args": ["-y", "pulse-mcp"] } } }
 ```
 
-That's it — drop it in your MCP config and your agent has two new tools.
+That's it — drop it in your MCP config and your agent has three new tools.
 
 ## Tools
 
 | Tool | Input | Output |
 |---|---|---|
-| `metrics` | one post URL | `{ platform, views, likes, comments, publishedAt, title }` |
+| `metrics` | one post URL (short links like `vm.tiktok.com`/`t.co` OK) | `{ platform, views, likes, comments, publishedAt, title, author, thumbnail }` |
 | `metrics_batch` | many URLs | the same, one per URL (partial failures don't fail the batch) |
+| `history` | one post URL | the recorded growth curve — `{ count, points: [{ t, views, likes, comments }] }`, a snapshot per fresh fetch |
 
 **Example** — ask your agent "how did this video do?" with a link, and it gets:
 
