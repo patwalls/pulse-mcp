@@ -12,7 +12,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 // MCP travels over stdout/stdin, so all logging MUST go to stderr only.
 // ─────────────────────────────────────────────────────────────────────────────
 const BASE_URL = (process.env.PULSE_API_URL || "https://pulse.walls.sh").replace(/\/+$/, "");
-const server = new Server({ name: "pulse", version: "0.2.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "pulse", version: "0.3.0" }, { capabilities: { tools: {} } });
 const TOOLS = [
     {
         name: "metrics",
@@ -45,6 +45,22 @@ const TOOLS = [
         inputSchema: {
             type: "object",
             properties: { url: { type: "string", description: "The public post URL." } },
+            required: ["url"],
+        },
+    },
+    {
+        name: "profile",
+        description: "Get account-level metrics for a profile URL — { platform, handle, name, followers, following, " +
+            "posts, likes, verified, avatar }. Live: YouTube channels (subscribers), TikTok users (exact counts " +
+            "+ total hearts), Instagram accounts (exact counts). X/Threads/LinkedIn profiles need a login.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                url: {
+                    type: "string",
+                    description: "The profile URL (e.g. youtube.com/@handle, tiktok.com/@user, instagram.com/user).",
+                },
+            },
             required: ["url"],
         },
     },
@@ -81,6 +97,13 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
             const data = await getJson(`/history?url=${encodeURIComponent(url)}`);
             return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
         }
+        if (name === "profile") {
+            const url = String(args?.url || "").trim();
+            if (!url)
+                throw new Error("`url` is required");
+            const data = await getJson(`/profile?url=${encodeURIComponent(url)}`);
+            return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+        }
         throw new Error(`unknown tool: ${name}`);
     }
     catch (e) {
@@ -90,7 +113,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error(`[pulse-mcp] ready — tools: metrics, metrics_batch, history · backend ${BASE_URL}`);
+    console.error(`[pulse-mcp] ready — tools: metrics, metrics_batch, history, profile · backend ${BASE_URL}`);
 }
 main().catch((e) => {
     console.error("[pulse-mcp] fatal:", e);

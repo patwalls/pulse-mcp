@@ -1,8 +1,8 @@
 {
   "name": "pulse-mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "mcpName": "io.github.patwalls/pulse-mcp",
-  "description": "MCP server for Pulse \u2014 free, agent-first social-post metrics (YouTube, X, TikTok, Instagram, Threads). Tools: metrics, metrics_batch, history.",
+  "description": "MCP server for Pulse \u2014 free, agent-first social-post metrics (YouTube, X, TikTok, Instagram, Threads). Tools: metrics, metrics_batch, history, profile.",
   "type": "module",
   "bin": {
     "pulse-mcp": "server.js"
