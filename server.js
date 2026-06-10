@@ -12,13 +12,14 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 // MCP travels over stdout/stdin, so all logging MUST go to stderr only.
 // ─────────────────────────────────────────────────────────────────────────────
 const BASE_URL = (process.env.PULSE_API_URL || "https://pulse.walls.sh").replace(/\/+$/, "");
-const server = new Server({ name: "pulse", version: "0.5.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "pulse", version: "0.6.0" }, { capabilities: { tools: {} } });
 const TOOLS = [
     {
         name: "metrics",
         description: "Get a public social post's metrics. Give a post URL (YouTube, X/Twitter incl. view counts, TikTok " +
             "incl. photo posts, Bluesky, Instagram, Threads, LinkedIn — short links like vm.tiktok.com and t.co resolve " +
-            "automatically) and get normalized { platform, views, likes, comments, publishedAt, title, author, thumbnail }. Free.",
+            "automatically) and get normalized { platform, views, likes, comments, shares, publishedAt, title, author, " +
+            "thumbnail } — shares = reshares (X retweets, TikTok shares, Bluesky reposts). Free.",
         inputSchema: {
             type: "object",
             properties: { url: { type: "string", description: "The public post URL (short links OK)." } },
