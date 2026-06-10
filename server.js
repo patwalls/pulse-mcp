@@ -12,7 +12,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 // MCP travels over stdout/stdin, so all logging MUST go to stderr only.
 // ─────────────────────────────────────────────────────────────────────────────
 const BASE_URL = (process.env.PULSE_API_URL || "https://pulse.walls.sh").replace(/\/+$/, "");
-const server = new Server({ name: "pulse", version: "0.6.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "pulse", version: "0.7.0" }, { capabilities: { tools: {} } });
 const TOOLS = [
     {
         name: "metrics",
@@ -42,12 +42,19 @@ const TOOLS = [
     {
         name: "history",
         description: "Get the recorded metrics history of a post OR a profile — the growth curve. Every fresh metrics " +
-            "fetch records a { t, views, likes, comments } snapshot (profiles: { t, followers, posts }); this " +
-            "returns the series (oldest first). An empty series means the URL hasn't been fetched yet: call " +
-            "`metrics` or `profile` on it to start the series.",
+            "fetch records a { t, views, likes, comments, shares } snapshot (profiles: { t, followers, posts }); " +
+            "this returns the series (oldest first). Pass `since` (ISO-8601 or unix ms) to get only the points " +
+            "after that moment — poll the delta, not the whole series. An empty series means the URL hasn't been " +
+            "fetched yet: call `metrics` or `profile` on it to start the series.",
         inputSchema: {
             type: "object",
-            properties: { url: { type: "string", description: "The public post URL." } },
+            properties: {
+                url: { type: "string", description: "The public post or profile URL." },
+                since: {
+                    type: "string",
+                    description: "Optional — ISO-8601 date or unix milliseconds; only points after this moment are returned.",
+                },
+            },
             required: ["url"],
         },
     },
@@ -95,10 +102,13 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
             return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
         }
         if (name === "history") {
-            const url = String(args?.url || "").trim();
+            const { url: rawUrl, since: rawSince } = (args ?? {});
+            const url = String(rawUrl || "").trim();
             if (!url)
                 throw new Error("`url` is required");
-            const data = await getJson(`/history?url=${encodeURIComponent(url)}`);
+            const since = String(rawSince || "").trim();
+            const qs = `url=${encodeURIComponent(url)}` + (since ? `&since=${encodeURIComponent(since)}` : "");
+            const data = await getJson(`/history?${qs}`);
             return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
         }
         if (name === "profile") {
