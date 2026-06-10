@@ -12,12 +12,12 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 // MCP travels over stdout/stdin, so all logging MUST go to stderr only.
 // ─────────────────────────────────────────────────────────────────────────────
 const BASE_URL = (process.env.PULSE_API_URL || "https://pulse.walls.sh").replace(/\/+$/, "");
-const server = new Server({ name: "pulse", version: "0.9.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "pulse", version: "0.10.0" }, { capabilities: { tools: {} } });
 const TOOLS = [
     {
         name: "metrics",
         description: "Get a public social post's metrics. Give a post URL (YouTube, X/Twitter incl. view counts, TikTok " +
-            "incl. photo posts, Bluesky, Instagram, Threads, LinkedIn — short links like vm.tiktok.com and t.co resolve " +
+            "incl. photo posts, Bluesky, Mastodon (major instances), Instagram, Threads, LinkedIn — short links like vm.tiktok.com and t.co resolve " +
             "automatically) and get normalized { platform, views, likes, comments, shares, quotes, bookmarks, publishedAt, title, " +
             "author, thumbnail } — shares = reshares (X retweets, TikTok shares, Bluesky reposts); quotes = quote " +
             "posts (X, Bluesky); bookmarks = saves (X). Free.",
@@ -64,7 +64,7 @@ const TOOLS = [
         description: "Get account-level metrics for a profile URL — { platform, handle, name, followers, following, " +
             "posts, likes, verified, avatar }. Live: YouTube channels (subscribers), TikTok users (exact counts " +
             "+ total hearts), Instagram accounts (exact counts), X accounts (followers/following/posts), " +
-            "Bluesky accounts (exact counts). Threads/LinkedIn profiles need a login.",
+            "Bluesky accounts (exact counts), Mastodon accounts (exact, major instances). Threads/LinkedIn profiles need a login.",
         inputSchema: {
             type: "object",
             properties: {
