@@ -11,7 +11,8 @@
     "server.js",
     "server.json",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "llms-install.md"
   ],
   "keywords": [
     "agents",
