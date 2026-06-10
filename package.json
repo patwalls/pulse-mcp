@@ -1,8 +1,8 @@
 {
   "name": "pulse-mcp",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "mcpName": "io.github.patwalls/pulse-mcp",
-  "description": "MCP server for Pulse \u2014 free, agent-first social-post metrics (YouTube, X, TikTok, Instagram, Threads). Tools: metrics, metrics_batch, history, profile.",
+  "description": "MCP server for Pulse \u2014 free, agent-first social-post metrics (YouTube, X, TikTok, Bluesky, Instagram, Threads). Tools: metrics, metrics_batch, history, profile.",
   "type": "module",
   "bin": {
     "pulse-mcp": "server.js"
@@ -14,15 +14,16 @@
     "LICENSE"
   ],
   "keywords": [
+    "agents",
+    "ai",
+    "bluesky",
+    "claude",
+    "instagram",
     "mcp",
     "model-context-protocol",
     "social-metrics",
-    "youtube",
     "tiktok",
-    "instagram",
-    "agents",
-    "ai",
-    "claude"
+    "youtube"
   ],
   "license": "MIT",
   "engines": {

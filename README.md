@@ -15,9 +15,9 @@ That's it — drop it in your MCP config and your agent has four new tools.
 | Tool | Input | Output |
 |---|---|---|
 | `metrics` | one post URL (short links like `vm.tiktok.com`/`t.co` OK) | `{ platform, views, likes, comments, publishedAt, title, author, thumbnail }` |
-| `metrics_batch` | many URLs | the same, one per URL (partial failures don't fail the batch) |
-| `history` | one post URL | the recorded growth curve — `{ count, points: [{ t, views, likes, comments }] }`, a snapshot per fresh fetch |
-| `profile` | one profile URL | account-level metrics — `{ handle, name, followers, following, posts, verified, avatar }` (YouTube, TikTok, Instagram, X) |
+| `metrics_batch` | many URLs (mixed post + profile URLs welcome) | the same, one per URL (partial failures don't fail the batch) |
+| `history` | one post or profile URL | the recorded growth curve — `{ count, points }` (posts: `{ t, views, likes, comments }`, profiles: `{ t, followers, posts }`), a snapshot per fresh fetch |
+| `profile` | one profile URL | account-level metrics — `{ handle, name, followers, following, posts, verified, avatar }` (YouTube, TikTok, Instagram, X, Bluesky) |
 
 **Example** — ask your agent "how did this video do?" with a link, and it gets:
 
@@ -37,8 +37,9 @@ That's it — drop it in your MCP config and your agent has four new tools.
 | Platform | Returns | Notes |
 |---|---|---|
 | YouTube | views, likes | |
-| X / Twitter | likes, comments | views aren't public |
+| X / Twitter | views, likes, comments | views via X's own guest API (tweets since ~Dec 2022) |
 | TikTok | views, likes, comments | |
+| Bluesky | likes, comments | public AppView API; Bluesky has no view counts |
 | Instagram | views, likes, comments | public posts via the guest API |
 | Threads, LinkedIn | — | need a logged-in session; returns a clear `login_required` (never fake zeros) |
 

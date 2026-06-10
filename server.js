@@ -12,12 +12,12 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 // MCP travels over stdout/stdin, so all logging MUST go to stderr only.
 // ─────────────────────────────────────────────────────────────────────────────
 const BASE_URL = (process.env.PULSE_API_URL || "https://pulse.walls.sh").replace(/\/+$/, "");
-const server = new Server({ name: "pulse", version: "0.4.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "pulse", version: "0.5.0" }, { capabilities: { tools: {} } });
 const TOOLS = [
     {
         name: "metrics",
         description: "Get a public social post's metrics. Give a post URL (YouTube, X/Twitter incl. view counts, TikTok " +
-            "incl. photo posts, Instagram, Threads, LinkedIn — short links like vm.tiktok.com and t.co resolve " +
+            "incl. photo posts, Bluesky, Instagram, Threads, LinkedIn — short links like vm.tiktok.com and t.co resolve " +
             "automatically) and get normalized { platform, views, likes, comments, publishedAt, title, author, thumbnail }. Free.",
         inputSchema: {
             type: "object",
@@ -27,8 +27,9 @@ const TOOLS = [
     },
     {
         name: "metrics_batch",
-        description: "Get metrics for many posts in one call. Pass an array of post URLs (max 50); returns " +
-            "{ count, results }, order preserved — each result is the metrics object or { url, error }.",
+        description: "Get metrics for many posts and/or profiles in one call. Pass an array of URLs (max 50, mixed post " +
+            "and profile URLs welcome); returns { count, results }, order preserved — each result is the " +
+            "metrics object or { url, error }.",
         inputSchema: {
             type: "object",
             properties: {
@@ -39,9 +40,10 @@ const TOOLS = [
     },
     {
         name: "history",
-        description: "Get a post's recorded metrics history — the growth curve. Every fresh metrics fetch records a " +
-            "{ t, views, likes, comments } snapshot; this returns the series (oldest first). An empty series " +
-            "means the post hasn't been fetched yet: call `metrics` on it to start the series.",
+        description: "Get the recorded metrics history of a post OR a profile — the growth curve. Every fresh metrics " +
+            "fetch records a { t, views, likes, comments } snapshot (profiles: { t, followers, posts }); this " +
+            "returns the series (oldest first). An empty series means the URL hasn't been fetched yet: call " +
+            "`metrics` or `profile` on it to start the series.",
         inputSchema: {
             type: "object",
             properties: { url: { type: "string", description: "The public post URL." } },
@@ -52,8 +54,8 @@ const TOOLS = [
         name: "profile",
         description: "Get account-level metrics for a profile URL — { platform, handle, name, followers, following, " +
             "posts, likes, verified, avatar }. Live: YouTube channels (subscribers), TikTok users (exact counts " +
-            "+ total hearts), Instagram accounts (exact counts), X accounts (followers/following/posts). " +
-            "Threads/LinkedIn profiles need a login.",
+            "+ total hearts), Instagram accounts (exact counts), X accounts (followers/following/posts), " +
+            "Bluesky accounts (exact counts). Threads/LinkedIn profiles need a login.",
         inputSchema: {
             type: "object",
             properties: {
