@@ -12,14 +12,15 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 // MCP travels over stdout/stdin, so all logging MUST go to stderr only.
 // ─────────────────────────────────────────────────────────────────────────────
 const BASE_URL = (process.env.PULSE_API_URL || "https://pulse.walls.sh").replace(/\/+$/, "");
-const server = new Server({ name: "pulse", version: "0.7.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "pulse", version: "0.8.0" }, { capabilities: { tools: {} } });
 const TOOLS = [
     {
         name: "metrics",
         description: "Get a public social post's metrics. Give a post URL (YouTube, X/Twitter incl. view counts, TikTok " +
             "incl. photo posts, Bluesky, Instagram, Threads, LinkedIn — short links like vm.tiktok.com and t.co resolve " +
-            "automatically) and get normalized { platform, views, likes, comments, shares, publishedAt, title, author, " +
-            "thumbnail } — shares = reshares (X retweets, TikTok shares, Bluesky reposts). Free.",
+            "automatically) and get normalized { platform, views, likes, comments, shares, quotes, publishedAt, title, " +
+            "author, thumbnail } — shares = reshares (X retweets, TikTok shares, Bluesky reposts); quotes = quote " +
+            "posts (X, Bluesky). Free.",
         inputSchema: {
             type: "object",
             properties: { url: { type: "string", description: "The public post URL (short links OK)." } },
@@ -42,7 +43,7 @@ const TOOLS = [
     {
         name: "history",
         description: "Get the recorded metrics history of a post OR a profile — the growth curve. Every fresh metrics " +
-            "fetch records a { t, views, likes, comments, shares } snapshot (profiles: { t, followers, posts }); " +
+            "fetch records a { t, views, likes, comments, shares, quotes } snapshot (profiles: { t, followers, posts }); " +
             "this returns the series (oldest first). Pass `since` (ISO-8601 or unix ms) to get only the points " +
             "after that moment — poll the delta, not the whole series. An empty series means the URL hasn't been " +
             "fetched yet: call `metrics` or `profile` on it to start the series.",
