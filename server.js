@@ -12,7 +12,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 // MCP travels over stdout/stdin, so all logging MUST go to stderr only.
 // ─────────────────────────────────────────────────────────────────────────────
 const BASE_URL = (process.env.PULSE_API_URL || "https://pulse.walls.sh").replace(/\/+$/, "");
-const server = new Server({ name: "pulse", version: "0.10.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "pulse", version: "0.11.0" }, { capabilities: { tools: {} } });
 const TOOLS = [
     {
         name: "metrics",
@@ -76,6 +76,24 @@ const TOOLS = [
             required: ["url"],
         },
     },
+    {
+        name: "profile_batch",
+        description: "Get account-level metrics for many profile URLs in one call — same as `profile` but up to 50 URLs at once. " +
+            "Mixed platforms welcome (YouTube, TikTok, Instagram, X, Bluesky, Mastodon). Returns { count, results }, " +
+            "order preserved — each result is a profile object or { url, error }. Useful for comparing follower " +
+            "counts across a list of creators/accounts.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                urls: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "Profile URLs (max 50, mixed platforms OK).",
+                },
+            },
+            required: ["urls"],
+        },
+    },
 ];
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
 async function getJson(path) {
@@ -119,6 +137,15 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
             const data = await getJson(`/profile?url=${encodeURIComponent(url)}`);
             return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
         }
+        if (name === "profile_batch") {
+            const urls = (args?.urls ?? []);
+            const list = (Array.isArray(urls) ? urls : []).map((u) => String(u).trim()).filter(Boolean);
+            if (list.length === 0)
+                throw new Error("`urls` must be a non-empty array");
+            const qs = list.map((u) => `url=${encodeURIComponent(u)}`).join("&");
+            const data = await getJson(`/profile/batch?${qs}`);
+            return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+        }
         throw new Error(`unknown tool: ${name}`);
     }
     catch (e) {
@@ -128,7 +155,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error(`[pulse-mcp] ready — tools: metrics, metrics_batch, history, profile · backend ${BASE_URL}`);
+    console.error(`[pulse-mcp] ready — tools: metrics, metrics_batch, history, profile, profile_batch · backend ${BASE_URL}`);
 }
 main().catch((e) => {
     console.error("[pulse-mcp] fatal:", e);

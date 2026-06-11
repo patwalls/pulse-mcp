@@ -8,7 +8,7 @@ URL, get back views, likes, comments, and the publish date as clean JSON. **No s
 { "mcpServers": { "pulse": { "command": "npx", "args": ["-y", "pulse-mcp"] } } }
 ```
 
-That's it — drop it in your MCP config and your agent has four new tools.
+That's it — drop it in your MCP config and your agent has five new tools.
 
 ## Tools
 
@@ -18,6 +18,7 @@ That's it — drop it in your MCP config and your agent has four new tools.
 | `metrics_batch` | many URLs (mixed post + profile URLs welcome) | the same, one per URL (partial failures don't fail the batch) |
 | `history` | one post or profile URL (+ optional `since` for the delta) | the recorded growth curve — `{ count, points }` (posts: `{ t, views, likes, comments }`, profiles: `{ t, followers, posts }`), a snapshot per fresh fetch |
 | `profile` | one profile URL | account-level metrics — `{ handle, name, followers, following, posts, verified, avatar }` (YouTube, TikTok, Instagram, X, Bluesky, Mastodon) |
+| `profile_batch` | many profile URLs (max 50) | same as `profile`, one per URL — order preserved; partial failures don't fail the batch. Compare follower counts across a list of creators. |
 
 **Example** — ask your agent "how did this video do?" with a link, and it gets:
 
