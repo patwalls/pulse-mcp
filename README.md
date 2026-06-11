@@ -43,7 +43,8 @@ That's it — drop it in your MCP config and your agent has five new tools.
 | Bluesky | likes, comments, shares (reposts), quotes | public AppView API; Bluesky has no view counts |
 | Mastodon | likes, boosts, replies | per-instance public REST API (major instances) |
 | Instagram | views, likes, comments | public posts via the guest API |
-| Threads, LinkedIn | — | need a logged-in session; returns a clear `login_required` (never fake zeros) |
+| Threads | post metrics need a login | post metrics → `login_required`; profile metrics (followers/verified) work via `/profile` |
+| LinkedIn | — (posts need login) | post metrics → `login_required`; profiles also login-walled |
 
 It reads each platform's own public pages from a **residential IP**, so it sees what a browser
 sees — and it's **honest about the edges**: a deleted/private post comes back `content_unavailable`,
