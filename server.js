@@ -12,12 +12,13 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 // MCP travels over stdout/stdin, so all logging MUST go to stderr only.
 // ─────────────────────────────────────────────────────────────────────────────
 const BASE_URL = (process.env.PULSE_API_URL || "https://pulse.walls.sh").replace(/\/+$/, "");
-const server = new Server({ name: "pulse", version: "0.11.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "pulse", version: "0.12.0" }, { capabilities: { tools: {} } });
 const TOOLS = [
     {
         name: "metrics",
         description: "Get a public social post's metrics. Give a post URL (YouTube, X/Twitter incl. view counts, TikTok " +
-            "incl. photo posts, Bluesky, Mastodon (major instances), Instagram, Threads, LinkedIn — short links like vm.tiktok.com and t.co resolve " +
+            "incl. photo posts, Bluesky, Mastodon (major instances), Hacker News (points + comments), Stack Overflow (views + score + answers), " +
+            "Instagram, Threads, LinkedIn — short links like vm.tiktok.com and t.co resolve " +
             "automatically) and get normalized { platform, views, likes, comments, shares, quotes, bookmarks, publishedAt, title, " +
             "author, thumbnail } — shares = reshares (X retweets, TikTok shares, Bluesky reposts); quotes = quote " +
             "posts (X, Bluesky); bookmarks = saves (X). Free.",
@@ -63,8 +64,8 @@ const TOOLS = [
         name: "profile",
         description: "Get account-level metrics for a profile URL — { platform, handle, name, followers, following, " +
             "posts, likes, verified, avatar }. Live: YouTube channels (subscribers), TikTok users (exact counts " +
-            "+ total hearts), Instagram accounts (exact counts), X accounts (followers/following/posts), " +
-            "Bluesky accounts (exact counts), Mastodon accounts (exact, major instances). Threads/LinkedIn profiles need a login.",
+            "+ total hearts), Instagram accounts (exact counts), Facebook pages (page followers), X accounts (followers/following/posts), " +
+            "Bluesky accounts (exact counts), Mastodon accounts (exact, major instances). Threads, LinkedIn, and login-walled Facebook need a session cookie.",
         inputSchema: {
             type: "object",
             properties: {
@@ -79,7 +80,7 @@ const TOOLS = [
     {
         name: "profile_batch",
         description: "Get account-level metrics for many profile URLs in one call — same as `profile` but up to 50 URLs at once. " +
-            "Mixed platforms welcome (YouTube, TikTok, Instagram, X, Bluesky, Mastodon). Returns { count, results }, " +
+            "Mixed platforms welcome (YouTube, TikTok, Instagram, Facebook, X, Bluesky, Mastodon). Returns { count, results }, " +
             "order preserved — each result is a profile object or { url, error }. Useful for comparing follower " +
             "counts across a list of creators/accounts.",
         inputSchema: {

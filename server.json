@@ -1,8 +1,8 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
   "name": "io.github.patwalls/pulse-mcp",
-  "description": "Free, agent-first social-post metrics \u2014 a post URL in, views/likes/comments out.",
-  "version": "0.11.0",
+  "description": "Free, agent-first social-post metrics — a post URL in, views/likes/comments out.",
+  "version": "0.12.0",
   "repository": {
     "url": "https://github.com/patwalls/pulse-mcp",
     "source": "github"
@@ -11,7 +11,7 @@
     {
       "registryType": "npm",
       "identifier": "pulse-mcp",
-      "version": "0.11.0",
+      "version": "0.12.0",
       "transport": {
         "type": "stdio"
       }
